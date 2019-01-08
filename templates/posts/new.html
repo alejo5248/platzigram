@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block head_content %}
+<title>Crear nuevo post</title>
+{% endblock %}
+
+{% block container %}
+
+    <div class="container">
+        <div class="row justify-content-md-center">
+            <div class="col-6 pt-3 pb-3" id="perfil-box">
+                <h4 class="mb-4">Nueva publicación!</h4>
+
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <input type="hidden" name="user" value="{{ user.pk}}" />
+                    <input type="hidden" name="perfil" value="{{ perfil.pk }}" />
+
+                    {# Website field #}
+                    <div class="form-group">
+                        <input
+                            class="form-control {% if form.titulo.errors %}is-invalid{% endif %}"
+                            type="text"
+                            name="titulo"
+                            placeholder="Titulo"
+                        >
+                        <div class="invalid-feedback">
+                            {% for error in form.titulo.errors %}{{ error }}{% endfor %}
+                        </div>
+                    </div>
+
+                    {# Photo field #}
+                    <div class="form-group">
+                        <label>Agrega una imagen:</label>
+                        <input
+                            class="form-control {% if form.foto.errors %}is-invalid{% endif %}"
+                            type="file"
+                            name="foto"
+                            placeholder="foto"
+                        >
+                        <div class="invalid-feedback">
+                            {% for error in form.foto.errors %}{{ error }}{% endfor %}
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block mt-5">Publicar!</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
