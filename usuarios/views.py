@@ -1,5 +1,5 @@
 
-from django.contrib.auth import authenticate, login, logout
+
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.generic import DetailView, FormView, UpdateView
@@ -52,26 +52,15 @@ class UpdateProfileView(LoginRequiredMixin, UpdateView):
 		return reverse('usuarios:detalle', kwargs={'username':username})
 	
 
-
-
-def login_view(request):
-	if request.method == 'POST':
-		username = request.POST['username']
-		password = request.POST['password']
-		user = authenticate(request, username=username, password=password)
-		if user:
-			login(request, user)
-			return redirect('posts:post')
-		else:
-			return render(request, 'usuarios/login.html', {'error': 'invalid username and password'})
-
-
-	return render(request, 'usuarios/login.html')
+class LoginView(auth_views.LoginView):
+	template_name='usuarios/login.html'
+	redirect_authenticated_user = True
 
 
 
 
-@login_required
-def logout_view ( request ):
-    logout ( request )
-    return redirect ('usuarios:login')	
+class LogoutView(LoginRequiredMixin, auth_views.LogoutView):
+
+	template_name = 'usuarios/logged_out.html'
+
+

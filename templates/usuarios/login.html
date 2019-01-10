@@ -6,8 +6,8 @@
 
 {% block container %}
 
-	{% if error%}
-		<p class="alert  alert-danger">{{error}}</p>
+	{% if form.errors%}
+		<p class="alert  alert-danger">tu nombre de usuario o contraseña no coinciden.</p>
 	{%endif%}
 
 	<form method="POST" action="{% url "usuarios:login" %}">
