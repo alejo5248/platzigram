@@ -16,19 +16,15 @@ Including another URLconf
 from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
-from django.urls import path
-from posts import views as posts_views
-from usuarios import views as usuarios_views
+from django.urls import path, include
+
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    path('posts/', posts_views.list_posts, name='post'),
-    path('posts/new/', posts_views.list_posts, name='create_post'),
-    path('usuarios/login/', usuarios_views.login_view, name='login'),
-    path('usuarios/logout/', usuarios_views.logout_view, name='logout'),
-    path('usuarios/signup/', usuarios_views.signup_view, name='signup'),
-    path('usuarios/yo/perfil', usuarios_views.update_profile, name='update_profile'),
-]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    path('posts/',include(('posts.urls', 'posts'), namespace='posts')),
+    path('usuarios/',include(('usuarios.urls', 'usuarios'), namespace='usuarios')),
+   
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

@@ -2,33 +2,57 @@
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models	import User
+from django.views.generic import DetailView, FormView, UpdateView
+from django.urls import reverse, reverse_lazy
+from usuarios.forms import  SignupForm
+from django.contrib.auth.models import User
+from django.contrib.auth.mixins import LoginRequiredMixin
+from posts.models import Post
 from usuarios.models import Perfil
-from django.db.utils import IntegrityError
-from usuarios.forms import ProfileForm
+from django.contrib.auth import views as auth_views
 
 # Create your views here.
 
-def update_profile(request):
-	perfil= request.user.perfil
 
-	if request.method == 'POST':
-		form = ProfileForm(request.POST, request.FILES)
-		if form.is_valid():
+class UserDetailView(LoginRequiredMixin, DetailView):
 
-			data = form.cleaned_data
+	template_name = 'usuarios/detalle.html'
+	slug_field = 'username'
+	slug_url_kwarg = 'username'
+	queryset = User.objects.all()
+	context_object_name = 'user'
 
-			perfil.website=data['website']
-			perfil.telefono=data['telefono']
-			perfil.biografia=data['biografia']
-			perfil.imagen=data['imagen']
-			perfil.save()
+	def get_context_data(self, **kwargs):
 
-			return redirect ('update_profile')
-	else:
-		form = ProfileForm()
+		context = super().get_context_data(**kwargs)
+		user = self.get_object()
+		context['posts'] = Post.objects.filter(user=user).order_by('-creado')
+		return context
 
-	return render(request =request,template_name= 'usuarios/update_profile.html', context={'perfil':perfil, 'user':request.user, 'form':form})
+class SignupView(FormView):
+	template_name='usuarios/signup.html'
+	form_class=SignupForm
+	success_url=reverse_lazy('usuarios:login')
+
+	def form_valid(self, form):
+		form.save()
+		return super().form_valid(form)
+
+class UpdateProfileView(LoginRequiredMixin, UpdateView):
+	template_name='usuarios/update_profile.html'
+	model = Perfil
+	fields=['website','biografia','telefono', 'imagen']
+
+	def get_object(self):
+		return self.request.user.perfil 
+
+	def get_success_url(self):
+
+		username=self.object.user.username
+		return reverse('usuarios:detalle', kwargs={'username':username})
+	
+
+
 
 def login_view(request):
 	if request.method == 'POST':
@@ -37,7 +61,7 @@ def login_view(request):
 		user = authenticate(request, username=username, password=password)
 		if user:
 			login(request, user)
-			return redirect('post')
+			return redirect('posts:post')
 		else:
 			return render(request, 'usuarios/login.html', {'error': 'invalid username and password'})
 
@@ -46,38 +70,8 @@ def login_view(request):
 
 
 
-def signup_view(request):
-	if request.method == 'POST':
-		username = request.POST['username']
-		password = request.POST['password']
-		password_confirmation = request.POST['password_confirmation']
-
-
-		if password != password_confirmation:
-			return render(request, 'usuarios/signup.html', {'error' : 'password incorrecto'})
-		try :
-			user = User.objects.create_user(username=username, password=password)
-		except IntegrityError:
-			return render(request, 'usuarios/signup.html', {'error' : 'el usuario ya existe'})
-
-		
-		
-		user.nombre = request.POST['nombre']
-		user.apellido = request.POST['apellido']
-		user.email = request.POST['email']
-		user.save()
-
-		perfil = Perfil(user=user)
-		perfil.save()
-		return redirect('login')
-
-
-
-
-	return render(request, 'usuarios/signup.html')
-
 
 @login_required
 def logout_view ( request ):
     logout ( request )
-    return redirect ('login')	
+    return redirect ('usuarios:login')	
